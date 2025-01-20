@@ -2,9 +2,57 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 from utils import get_response  # Replace with your function to get chatbot response
+import speech_recognition as sr
+import pyttsx3
+import time
 
 # Load environment variables
 load_dotenv('../env.sh')  # Update the path if necessary
+
+def get_voice_input():
+    """
+    Captures voice input from the user's microphone and returns the transcribed text.
+    """
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        status_placeholder = st.empty()
+
+        status_placeholder.info("Listening... Please speak now.")
+        
+        # Adjust for ambient noise
+        # recognizer.adjust_for_ambient_noise(source, duration=1)
+        
+        try:
+            audio = recognizer.listen(source, timeout=5, phrase_time_limit=20)
+            status_placeholder.empty()
+            status_placeholder.success("Processing your voice input...")
+            time.sleep(1)  # Simulate processing time
+
+            text = recognizer.recognize_google(audio)
+            status_placeholder.empty()
+            status_placeholder.success(f"Transcribed Voice Input: {text}")
+            time.sleep(2)  # Allow user to see transcription before it disappears
+            status_placeholder.empty()
+            return text
+
+        except sr.UnknownValueError:
+            status_placeholder.empty()
+            st.warning("Sorry, I could not understand the audio. Please try again.")
+        except sr.RequestError:
+            status_placeholder.empty()
+            st.error("There was an error with the speech recognition service. Please try again.")
+        except sr.WaitTimeoutError:
+            status_placeholder.empty()
+            st.warning("You didn't say anything. Please try again.")
+        return ""
+
+def speak_response(response):
+    """
+    Converts text response to speech for accessibility purposes.
+    """
+    engine = pyttsx3.init()
+    engine.say(response)
+    engine.runAndWait()
 
 def main():
     # Load OpenAI API Key
@@ -30,29 +78,46 @@ def main():
     if 'messages' not in st.session_state:
         st.session_state.messages = []
 
-    # Input for user message
-    user_input = st.chat_input("Ask about our Credit Cards...")
+    # Check if the last input was from voice
+    if 'voice_mode' not in st.session_state:
+        st.session_state.voice_mode = False
 
-    # Add the user message and assistant response to the history
+    # Input area with columns layout (Text box 4:1 Voice button)
+    st.markdown('<div style="position: fixed; bottom: 60px; width: 100%;">', unsafe_allow_html=True)
+    col1, col2 = st.columns([4, 1])
+    
+    with col1:
+        user_input = st.chat_input("Ask about our Credit Cards...")
+    with col2:
+        if st.button("🎤 Voice Input"):
+            voice_input = get_voice_input()
+            if voice_input:
+                user_input = voice_input
+                st.session_state.voice_mode = True  # Track that voice was used
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Process user input and get response
     if user_input:
-        # Add user message to history
         st.session_state.messages.append({
             "role": "user",
             "content": user_input
         })
 
-        # Display a spinner while fetching the response
         with st.spinner("Fetching information..."):
-            # Get chatbot response
-            response = get_response(user_input)  # Replace with your function to generate a response
+            response = get_response(user_input)
 
-        # Add assistant's response to history
         st.session_state.messages.append({
             "role": "assistant",
             "content": response
         })
 
-    # Display chat history after user input and assistant response
+        # Speak the response only if the user used voice input
+        if st.session_state.voice_mode:
+            speak_response(response)
+            st.session_state.voice_mode = False  # Reset for next input
+
+    # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             if message["role"] == "user":

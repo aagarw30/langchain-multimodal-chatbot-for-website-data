@@ -1,0 +1,5 @@
+env.sh
+myenv/
+venv/
+data/
+__pycache__
