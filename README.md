@@ -8,7 +8,7 @@ It uses both text and voice inputs to interact with customers, making it accessi
 
 
 ## Video demo
-Please find the demo video [here](!C:\Users\Admin\Desktop\langchain-multimodal-chatbot-for-website-data\chatbotdemo_1.mp4).
+Please find the demo video [here](chatbotdemo_1.mp4).
 
 
 ## Features
