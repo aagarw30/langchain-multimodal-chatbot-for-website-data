@@ -8,7 +8,7 @@ It uses both text and voice inputs to interact with customers, making it accessi
 
 
 ## Video demo
-Please find the demo video [here](chatbotdemo_1.mp4).
+Please find the demo video [!here](chatbotdemo_1.mp4).
 
 
 ## Features
@@ -18,7 +18,9 @@ Please find the demo video [here](chatbotdemo_1.mp4).
 
 
 ## High Level Architecture
-- To be added
+![Architecture Overview](ArchDiagram.png)
+
+
 
 ## Tech Stack
 - **Frontend**: Streamlit (Web UI for chatbot)
